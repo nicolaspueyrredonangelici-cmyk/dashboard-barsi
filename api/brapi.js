@@ -1,19 +1,29 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+export const config = { runtime: 'edge' };
 
-  const { ticker, range = '6mo', interval = '1wk' } = req.query;
-  if (!ticker) { res.status(400).json({ error: 'ticker requerido' }); return; }
+export default async function handler(req) {
+  const { searchParams } = new URL(req.url);
+  const ticker   = searchParams.get('ticker');
+  const range    = searchParams.get('range')    || '6mo';
+  const interval = searchParams.get('interval') || '1wk';
+
+  if (!ticker) {
+    return new Response(JSON.stringify({ error: 'ticker requerido' }), { status: 400 });
+  }
 
   const BTOKEN = 'i4juBiXM1YNfbfnYuk1Sns';
   const url = `https://brapi.dev/api/quote/${ticker}?token=${BTOKEN}&fundamental=true&dividends=true&range=${range}&interval=${interval}&history=true`;
 
   try {
-    const r = await fetch(url);
+    const r    = await fetch(url);
     const data = await r.json();
-    res.status(200).json(data);
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
   }
 }

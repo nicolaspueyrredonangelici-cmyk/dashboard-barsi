@@ -14,7 +14,7 @@ export default async function handler(req) {
   const url = `https://brapi.dev/api/quote/${ticker}?token=${BTOKEN}&fundamental=true&dividends=true&range=${range}&interval=${interval}&history=true`;
 
   try {
-    const r    = await fetch(url);
+    const r = await fetch(url);
     const data = await r.json();
     return new Response(JSON.stringify(data), {
       status: 200,

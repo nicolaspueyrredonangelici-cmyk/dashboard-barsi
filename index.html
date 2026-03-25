@@ -1,2 +1,409 @@
-# dashboard-barsi
-Acciones brasileras según criterios de Barsi y también su benchmark, el EWZ.
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nicolás Pueyrredón Angelici — Asesor Financiero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #0f0f0d;
+  --ink2: #3a3a36;
+  --ink3: #7a7a72;
+  --paper: #faf9f6;
+  --paper2: #f2f0eb;
+  --paper3: #e8e5de;
+  --gold: #b8962e;
+  --gold2: #d4af4a;
+  --gold-bg: #faf4e1;
+  --green: #1D9E75;
+  --green-bg: #eaf3de;
+  --red: #c0392b;
+  --border: rgba(15,15,13,0.10);
+  --border2: rgba(15,15,13,0.20);
+  --radius: 4px;
+  --radius-lg: 8px;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.6; overflow-x: hidden; }
+
+/* ── HEADER ── */
+header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(250,249,246,0.92); backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); }
+.header-inner { max-width: 1100px; margin: 0 auto; padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+.logo { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 500; color: var(--ink); letter-spacing: -0.3px; }
+.logo span { color: var(--gold); }
+nav { display: flex; gap: 2rem; }
+nav a { font-size: 13px; font-weight: 400; color: var(--ink3); text-decoration: none; letter-spacing: 0.02em; transition: color 0.2s; }
+nav a:hover { color: var(--ink); }
+
+/* ── HERO ── */
+.hero { min-height: 100vh; display: flex; align-items: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(184,150,46,0.06) 0%, transparent 70%); pointer-events: none; }
+.hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border2), transparent); }
+.hero-inner { max-width: 1100px; margin: 0 auto; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+.hero-label { font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+.hero-label::before { content: ''; width: 24px; height: 1px; background: var(--gold); }
+.hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(38px, 5vw, 58px); font-weight: 500; line-height: 1.1; letter-spacing: -1px; color: var(--ink); margin-bottom: 1.5rem; }
+.hero h1 em { font-style: italic; color: var(--gold); }
+.hero-desc { font-size: 16px; font-weight: 300; color: var(--ink2); line-height: 1.8; max-width: 440px; margin-bottom: 2.5rem; }
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; background: var(--ink); color: var(--paper); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; letter-spacing: 0.03em; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-primary:hover { background: var(--ink2); }
+.btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; background: transparent; color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; letter-spacing: 0.03em; text-decoration: none; border: 1px solid var(--border2); cursor: pointer; transition: all 0.2s; }
+.btn-secondary:hover { background: var(--paper2); }
+.hero-stats { display: flex; flex-direction: column; gap: 1px; }
+.stat-card { background: var(--paper2); border: 0.5px solid var(--border); padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.2s; }
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold); }
+.stat-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); margin-bottom: 8px; }
+.stat-value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; color: var(--ink); letter-spacing: -0.5px; }
+.stat-sub { font-size: 12px; color: var(--ink3); margin-top: 4px; }
+.stat-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); margin-top: 8px; }
+.stat-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+/* ── MACRO SECTION ── */
+.section { padding: 6rem 2rem; }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+.section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 3rem; border-bottom: 0.5px solid var(--border); padding-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.section-title { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 500; color: var(--ink); letter-spacing: -0.5px; }
+.section-date { font-size: 12px; color: var(--ink3); }
+.macro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; background: var(--border); border: 0.5px solid var(--border); }
+.macro-card { background: var(--paper); padding: 1.75rem; transition: background 0.2s; }
+.macro-card:hover { background: var(--paper2); }
+.macro-name { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink3); margin-bottom: 12px; }
+.macro-val { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: var(--ink); letter-spacing: -1px; line-height: 1; }
+.macro-unit { font-size: 16px; color: var(--ink3); }
+.macro-desc { font-size: 12px; color: var(--ink3); margin-top: 8px; line-height: 1.5; }
+.macro-change { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; margin-top: 8px; padding: 3px 8px; }
+.macro-change.up { background: var(--green-bg); color: #1D9E75; }
+.macro-change.down { background: #fdecea; color: var(--red); }
+.macro-loading { display: flex; align-items: center; gap: 8px; color: var(--ink3); font-size: 13px; padding: 3rem; }
+.spin { width: 14px; height: 14px; border: 1.5px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SELIC CHART ── */
+.chart-section { background: var(--paper2); border: 0.5px solid var(--border); padding: 2rem; margin-top: 1.5rem; }
+.chart-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 500; color: var(--ink); margin-bottom: 1.5rem; }
+.chart-wrap { position: relative; width: 100%; height: 220px; }
+
+/* ── DASHBOARD SECTION ── */
+.dashboard-section { background: var(--ink); padding: 6rem 2rem; }
+.dashboard-inner { max-width: 1100px; margin: 0 auto; }
+.dashboard-label { font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold2); margin-bottom: 8px; }
+.dashboard-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 500; color: var(--paper); letter-spacing: -0.5px; margin-bottom: 1rem; line-height: 1.2; }
+.dashboard-desc { font-size: 15px; font-weight: 300; color: rgba(250,249,246,0.6); max-width: 560px; margin-bottom: 2.5rem; line-height: 1.8; }
+.dashboard-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: rgba(255,255,255,0.05); border: 0.5px solid rgba(255,255,255,0.08); margin-bottom: 2.5rem; }
+.feature { padding: 1.5rem; background: rgba(255,255,255,0.02); }
+.feature-icon { font-size: 20px; margin-bottom: 10px; }
+.feature-title { font-size: 13px; font-weight: 500; color: var(--paper); margin-bottom: 4px; }
+.feature-desc { font-size: 12px; color: rgba(250,249,246,0.45); line-height: 1.5; }
+.btn-dashboard { display: inline-flex; align-items: center; gap: 10px; padding: 15px 32px; background: var(--gold); color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; text-decoration: none; letter-spacing: 0.02em; transition: all 0.2s; border: none; cursor: pointer; }
+.btn-dashboard:hover { background: var(--gold2); }
+.btn-dashboard svg { width: 16px; height: 16px; }
+
+/* ── SOBRE MÍ ── */
+.about-section { padding: 6rem 2rem; background: var(--paper2); }
+.about-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 2fr; gap: 5rem; align-items: start; }
+.about-sidebar { position: sticky; top: 90px; }
+.about-initial { width: 80px; height: 80px; background: var(--ink); color: var(--paper); font-family: 'Playfair Display', serif; font-size: 28px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+.about-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.about-role { font-size: 13px; color: var(--gold); font-weight: 400; letter-spacing: 0.05em; }
+.about-content p { font-size: 15px; font-weight: 300; color: var(--ink2); line-height: 1.9; margin-bottom: 1.5rem; }
+.about-content p:last-child { margin-bottom: 0; }
+.about-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2rem; }
+.tag { padding: 6px 14px; border: 0.5px solid var(--border2); font-size: 12px; font-weight: 400; color: var(--ink2); letter-spacing: 0.02em; }
+
+/* ── FOOTER ── */
+footer { padding: 2.5rem 2rem; border-top: 0.5px solid var(--border); }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.footer-logo { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--ink2); }
+.footer-note { font-size: 11px; color: var(--ink3); }
+
+/* ── ANIMATIONS ── */
+.fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media(max-width: 768px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 3rem; }
+  .about-inner { grid-template-columns: 1fr; gap: 2rem; }
+  .about-sidebar { position: static; }
+  nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">NPA <span>·</span> Value Investing</div>
+    <nav>
+      <a href="#macro">Macro Brasil</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#about">Sobre mí</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-label">Asesor Financiero</div>
+      <h1>Nicolás<br>Pueyrredón<br><em>Angelici</em></h1>
+      <p class="hero-desc">Enfoque en Value Investing con especialización en renta variable. Análisis fundamental, selección de activos por dividendos y construcción de carteras orientadas al largo plazo.</p>
+      <div class="hero-ctas">
+        <a href="#dashboard" class="btn-primary">Ver dashboard Brasil →</a>
+        <a href="#macro" class="btn-secondary">Datos macro BCB</a>
+      </div>
+    </div>
+    <div class="hero-stats" id="hero-stats">
+      <div class="macro-loading"><div class="spin"></div>Cargando datos del BCB...</div>
+    </div>
+  </div>
+</section>
+
+<!-- MACRO -->
+<section class="section" id="macro">
+  <div class="section-inner">
+    <div class="section-header">
+      <div>
+        <div class="section-label">Banco Central do Brasil</div>
+        <div class="section-title">Indicadores macroeconómicos</div>
+      </div>
+      <div class="section-date" id="macro-date">Actualizando...</div>
+    </div>
+
+    <div class="macro-grid" id="macro-grid">
+      <div class="macro-loading" style="grid-column:1/-1"><div class="spin"></div>Conectando con la API del BCB...</div>
+    </div>
+
+    <div class="chart-section fade-in" id="selic-chart-section" style="display:none">
+      <div class="chart-title">Evolución de la tasa Selic — últimos 24 meses</div>
+      <div class="chart-wrap"><canvas id="selicChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section class="dashboard-section" id="dashboard">
+  <div class="dashboard-inner">
+    <div class="dashboard-label">Herramienta de análisis</div>
+    <h2 class="dashboard-title">Dashboard Brasil<br>Estilo Barsi</h2>
+    <p class="dashboard-desc">12 activos del mercado brasileño analizados bajo los criterios de Luiz Barsi Filho — el mayor inversor individual de Brasil. Dividendos, fundamentales, score Barsi y calculadora de ingreso pasivo.</p>
+    <div class="dashboard-features">
+      <div class="feature">
+        <div class="feature-icon">◈</div>
+        <div class="feature-title">12 activos en vivo</div>
+        <div class="feature-desc">EWZ, ITUB, BBAS, CMIG4, UNIP6, TRPL4 y más</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">◇</div>
+        <div class="feature-title">Score Barsi</div>
+        <div class="feature-desc">DY, P/BV, ROE y sector — 5 criterios clave</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">◉</div>
+        <div class="feature-title">Calculadora DRIP</div>
+        <div class="feature-desc">Proyección de ingreso pasivo a 30 años</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">◎</div>
+        <div class="feature-title">Análisis IA</div>
+        <div class="feature-desc">Consultas en tiempo real con búsqueda web</div>
+      </div>
+    </div>
+    <a href="dashboard_barsi.html" class="btn-dashboard">
+      Abrir dashboard completo
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- SOBRE MÍ -->
+<section class="about-section" id="about">
+  <div class="about-inner">
+    <div class="about-sidebar fade-in">
+      <div class="about-initial">NP</div>
+      <div class="about-name">Nicolás Pueyrredón Angelici</div>
+      <div class="about-role">Value Investor · Renta Variable</div>
+      <div class="about-tags" style="margin-top:1.5rem">
+        <span class="tag">Value Investing</span>
+        <span class="tag">Mercado B3</span>
+        <span class="tag">Dividendos</span>
+        <span class="tag">Análisis fundamental</span>
+        <span class="tag">Largo plazo</span>
+      </div>
+    </div>
+    <div class="about-content fade-in">
+      <p>Asesor financiero con enfoque en Value Investing y especialización en el mercado brasileño. Mi metodología se basa en el análisis fundamental profundo de empresas con ventajas competitivas sostenibles, posiciones de mercado dominantes y políticas consistentes de distribución de dividendos.</p>
+      <p>Sigo de cerca el enfoque de Luiz Barsi Filho — el mayor inversor individual de Brasil — cuya filosofía de construir patrimonio a través de dividendos crecientes y reinversión disciplinada ha demostrado resultados extraordinarios a lo largo de décadas de mercado.</p>
+      <p>El mercado brasileño ofrece oportunidades únicas para el inversor de largo plazo: empresas con dividend yields de dos dígitos, valuaciones atractivas por P/BV y retornos sobre equity superiores al promedio global, en sectores defensivos como energía eléctrica, banca y materiales básicos.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Nicolás Pueyrredón Angelici</div>
+    <div class="footer-note">Datos macro: Banco Central do Brasil (BCB) · Dashboard: Brapi.dev · Este sitio es de carácter informativo y no constituye asesoramiento financiero.</div>
+  </div>
+</footer>
+
+<script>
+const BCB_BASE = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs';
+
+async function fetchBCB(serie, ultimos=1){
+  const url = `${BCB_BASE}.${serie}/dados/ultimos/${ultimos}?formato=json`;
+  const r = await fetch(url);
+  return await r.json();
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  const p = d.split('/');
+  if(p.length===3) return `${p[0]}/${p[1]}/${p[2]}`;
+  return d;
+}
+
+async function loadMacro(){
+  try {
+    const [selic, ipca, cambio, pib, reservas, selicHist] = await Promise.allSettled([
+      fetchBCB(432, 1),    // Selic meta
+      fetchBCB(433, 1),    // IPCA acumulado 12 meses
+      fetchBCB(1, 1),      // USD/BRL
+      fetchBCB(4380, 1),   // PIB variación
+      fetchBCB(13621, 1),  // Reservas internacionales
+      fetchBCB(432, 24),   // Selic histórico 24 meses
+    ]);
+
+    const get = (r) => r.status==='fulfilled' && r.value?.length ? r.value : null;
+    const selicData = get(selic);
+    const ipcaData  = get(ipca);
+    const cambioData= get(cambio);
+    const pibData   = get(pib);
+    const resData   = get(reservas);
+    const selicH    = get(selicHist);
+
+    const selicVal  = selicData  ? parseFloat(selicData[selicData.length-1].valor).toFixed(2)  : '—';
+    const ipcaVal   = ipcaData   ? parseFloat(ipcaData[ipcaData.length-1].valor).toFixed(2)    : '—';
+    const cambioVal = cambioData ? parseFloat(cambioData[cambioData.length-1].valor).toFixed(4) : '—';
+    const pibVal    = pibData    ? parseFloat(pibData[pibData.length-1].valor).toFixed(1)       : '—';
+    const resVal    = resData    ? (parseFloat(resData[resData.length-1].valor)/1e9).toFixed(1) : '—';
+
+    const now = new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('macro-date').textContent = `Actualizado: ${now}`;
+
+    const selicNum = parseFloat(selicVal);
+    const ipcaNum  = parseFloat(ipcaVal);
+    const real_rate = (selicNum - ipcaNum).toFixed(2);
+
+    document.getElementById('macro-grid').innerHTML = `
+      <div class="macro-card">
+        <div class="macro-name">Tasa Selic</div>
+        <div class="macro-val">${selicVal}<span class="macro-unit">%</span></div>
+        <div class="macro-desc">Tasa de política monetaria del Banco Central do Brasil</div>
+        <div class="macro-change ${selicNum>10?'up':'down'}">${selicNum>10?'▲ Restrictiva':'▼ Expansiva'}</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-name">IPCA (inflación 12m)</div>
+        <div class="macro-val">${ipcaVal}<span class="macro-unit">%</span></div>
+        <div class="macro-desc">Índice de Precios al Consumidor Amplio acumulado</div>
+        <div class="macro-change ${ipcaNum>4.5?'down':'up'}">${ipcaNum>4.5?'▲ Sobre meta':'✓ En rango'}</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-name">Tasa real (Selic – IPCA)</div>
+        <div class="macro-val">${real_rate}<span class="macro-unit">%</span></div>
+        <div class="macro-desc">Rendimiento real de la renta fija brasileña</div>
+        <div class="macro-change ${parseFloat(real_rate)>5?'up':'down'}">${parseFloat(real_rate)>5?'Alta tasa real':'Tasa real moderada'}</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-name">USD / BRL</div>
+        <div class="macro-val">${cambioVal}</div>
+        <div class="macro-desc">Tipo de cambio dólar / real brasileño (PTAX)</div>
+        <div class="macro-change ${parseFloat(cambioVal)>5.5?'down':'up'}">${parseFloat(cambioVal)>5.5?'Real debilitado':'Real estable'}</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-name">PIB (var. anual)</div>
+        <div class="macro-val">${pibVal}<span class="macro-unit">%</span></div>
+        <div class="macro-desc">Variación del Producto Bruto Interno de Brasil</div>
+        <div class="macro-change ${parseFloat(pibVal)>0?'up':'down'}">${parseFloat(pibVal)>0?'▲ Expansión':'▼ Contracción'}</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-name">Reservas internacionales</div>
+        <div class="macro-val">${resVal}<span class="macro-unit">B</span></div>
+        <div class="macro-desc">Reservas del BCB en miles de millones de USD</div>
+        <div class="macro-change up">▲ Sólidas</div>
+      </div>`;
+
+    // Hero stats
+    document.getElementById('hero-stats').innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">Selic</div>
+        <div class="stat-value">${selicVal}<span style="font-size:16px;color:var(--ink3)">%</span></div>
+        <div class="stat-sub">Tasa de política monetaria</div>
+        <div class="stat-live">En vivo · BCB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">IPCA</div>
+        <div class="stat-value">${ipcaVal}<span style="font-size:16px;color:var(--ink3)">%</span></div>
+        <div class="stat-sub">Inflación acumulada 12m</div>
+        <div class="stat-live">En vivo · BCB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">USD / BRL</div>
+        <div class="stat-value">${cambioVal}</div>
+        <div class="stat-sub">Tipo de cambio PTAX</div>
+        <div class="stat-live">En vivo · BCB</div>
+      </div>`;
+
+    // Selic chart
+    if(selicH && selicH.length > 1){
+      document.getElementById('selic-chart-section').style.display = 'block';
+      const labels = selicH.map(d => {
+        const p = d.data.split('/');
+        return `${p[1]}/${p[2].slice(2)}`;
+      });
+      const values = selicH.map(d => parseFloat(d.valor));
+      const isDark = matchMedia('(prefers-color-scheme:dark)').matches;
+      const tc = '#7a7a72', gc = 'rgba(15,15,13,0.06)';
+      new Chart(document.getElementById('selicChart'), {
+        type: 'line',
+        data: { labels, datasets: [{
+          data: values,
+          borderColor: '#b8962e',
+          backgroundColor: 'rgba(184,150,46,0.06)',
+          borderWidth: 2, pointRadius: 0, tension: 0.3, fill: true
+        }]},
+        options: { responsive:true, maintainAspectRatio:false,
+          plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` Selic: ${ctx.parsed.y.toFixed(2)}%` }}},
+          scales: {
+            x: { grid:{display:false}, ticks:{font:{size:10},color:tc,maxRotation:0,autoSkip:true,maxTicksLimit:12}, border:{display:false} },
+            y: { grid:{color:gc}, ticks:{font:{size:10},color:tc,callback:v=>v+'%'}, border:{display:false} }
+          }
+        }
+      });
+    }
+
+  } catch(e) {
+    document.getElementById('macro-grid').innerHTML = `<div style="padding:2rem;color:var(--ink3);font-size:13px;grid-column:1/-1">No se pudieron cargar los datos del BCB. Verificá tu conexión a internet.</div>`;
+    document.getElementById('hero-stats').innerHTML = `<div style="color:var(--ink3);font-size:13px">Sin conexión al BCB</div>`;
+  }
+}
+
+// Intersection Observer para fade-in
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+loadMacro();
+</script>
+</body>
+</html>

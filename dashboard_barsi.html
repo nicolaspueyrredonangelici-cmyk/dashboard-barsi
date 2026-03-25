@@ -263,7 +263,7 @@
 </div>
 
 <script>
-const BTOKEN='i4juBiXM1YNfbfnYuk1Sns', BRAPI='https://brapi.dev/api';
+const BRAPI_PROXY = '/api/brapi';
 let curTicker='EWZ', curRange='6mo', priceChart=null, cmpChart=null, calcChart=null;
 let sortCol='score', sortDir=-1, cmpView='tabla', calcView='ingreso', calcDY=10.2;
 
@@ -411,7 +411,7 @@ function loadStatic(ticker){
 async function tryLiveLoad(ticker){
   try{
     const rm={'6mo':'6mo','1y':'1y','3y':'3y'};
-    const url=`${BRAPI}/quote/${ticker}?token=${BTOKEN}&fundamental=true&dividends=true&range=${rm[curRange]}&interval=1wk&history=true`;
+    const url=`${BRAPI_PROXY}?ticker=${ticker}&range=${rm[curRange]}&interval=1wk`;
     const json=await Promise.race([fetch(url).then(r=>r.json()),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))]);
     if(!json.results||!json.results[0])return false;
     const data=json.results[0];

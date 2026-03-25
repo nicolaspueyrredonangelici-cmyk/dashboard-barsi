@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/brapi.js": {
+      "runtime": "edge"
+    }
+  }
+}

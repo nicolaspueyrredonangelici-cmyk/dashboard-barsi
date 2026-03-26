@@ -411,49 +411,56 @@ function loadStatic(ticker){
 async function tryLiveLoad(ticker){
   try{
     const rm={'6mo':'3mo','1y':'1mo','3y':'5d'};
-    const interval=curRange==='3y'?'1d':curRange==='1y'?'1d':'1d';
-    const url=`${BRAPI_PROXY}?ticker=${ticker}&range=${rm[curRange]}&interval=${interval}`;
-    const json=await Promise.race([fetch(url).then(r=>r.json()),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))]);
-    if(!json.results||!json.results[0])return false;
+    const url=`${BRAPI_PROXY}?ticker=${ticker}&range=${rm[curRange]}&interval=1d`;
+    const json=await Promise.race([
+      fetch(url).then(r=>r.json()),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000))
+    ]);
+    if(!json.results||!json.results[0]) return false;
     const data=json.results[0];
-    const isBRL=data.currency==='BRL'||data.regularMarketPrice>20;
-    const prefix=isBRL?'R$':'$';
-    const price=data.regularMarketPrice??0,change=data.regularMarketChange??0,pct=data.regularMarketChangePercent??0;
-    const h52=data.fiftyTwoWeekHigh??0,l52=data.fiftyTwoWeekLow??0;
-    const dy=data.dividendYield!=null?data.dividendYield.toFixed(1)+'%':'—';
-    const pe=data.priceEarnings!=null?data.priceEarnings.toFixed(1)+'x':'—';
-    const pbv=data.priceToBook!=null?data.priceToBook.toFixed(2)+'x':'—';
-    const roe=data.returnOnEquity!=null?(data.returnOnEquity*100).toFixed(1)+'%':'—';
-    const debt=data.debtToEquity!=null?data.debtToEquity.toFixed(2)+'x':'—';
-    const payout=data.payoutRatio!=null?(data.payoutRatio*100).toFixed(0)+'%':'—';
-    const ev=data.enterpriseValueEbitda!=null?data.enterpriseValueEbitda.toFixed(1)+'x':'—';
-    const cap=data.marketCap>=1e12?'$'+(data.marketCap/1e12).toFixed(1)+'T':data.marketCap>=1e9?'$'+(data.marketCap/1e9).toFixed(1)+'B':'$'+(data.marketCap/1e6).toFixed(1)+'M';
-    const isPos=change>=0;
+    if(data.error) return false;
+
+    const isBRL = DATA[ticker]?.isBRL ?? true;
+    const prefix = isBRL?'R$':'$';
+    const price  = data.regularMarketPrice??0;
+    const change = data.regularMarketChange??0;
+    const pct    = data.regularMarketChangePercent??0;
+    const h52    = data.fiftyTwoWeekHigh??0;
+    const l52    = data.fiftyTwoWeekLow??0;
+    const cap    = data.marketCap>=1e12?prefix+(data.marketCap/1e12).toFixed(1)+'T':data.marketCap>=1e9?prefix+(data.marketCap/1e9).toFixed(1)+'B':data.marketCap?prefix+(data.marketCap/1e6).toFixed(1)+'M':'—';
+    const isPos  = change>=0;
+    const d = DATA[ticker];
+
     setHTML('t-kpis',`
       <div class="mcard"><div class="mcard-lbl">Precio</div><div class="mcard-val">${prefix}${price.toFixed(2)}</div><div class="mcard-sub ${isPos?'pos':'neg'}">${isPos?'+':''}${change.toFixed(2)} (${isPos?'+':''}${pct.toFixed(2)}%)</div></div>
       <div class="mcard"><div class="mcard-lbl">Máx. 52 sem.</div><div class="mcard-val">${prefix}${h52.toFixed(2)}</div></div>
       <div class="mcard"><div class="mcard-lbl">Mín. 52 sem.</div><div class="mcard-val">${prefix}${l52.toFixed(2)}</div></div>
-      <div class="mcard"><div class="mcard-lbl">Dividend Yield</div><div class="mcard-val pos">${dy}</div></div>
-      <div class="mcard"><div class="mcard-lbl">Capitalización</div><div class="mcard-val">${cap}</div></div>`);
-    setText('f-pe',pe);setText('f-pbv',pbv);setText('f-roe',roe);
-    setText('f-debt',debt);setText('f-payout',payout);setText('f-ev',ev);
+      <div class="mcard"><div class="mcard-lbl">Dividend Yield</div><div class="mcard-val pos">${d?.dy||'—'}</div></div>
+      <div class="mcard"><div class="mcard-lbl">Capitalización</div><div class="mcard-val">${cap||d?.cap||'—'}</div></div>`);
+
     setText('sec-lbl','Sector: '+(DATA[ticker]?.sector||ticker));
-    renderScore(calcScore(dy,pbv,roe,ticker),dy,pbv,roe);
-    const divs=(data.dividendsData?.cashDividends||[]).slice(0,4).map(dv=>({date:dv.paymentDate?new Date(dv.paymentDate).toLocaleDateString('es-AR',{month:'short',year:'numeric'}):'—',amount:prefix+(dv.rate||0).toFixed(3),tipo:dv.label||'Dividendo',yield:dv.rate&&price?(dv.rate/price*100).toFixed(2)+'%':'—'}));
-    const tb=$('t-divbody');
-    if(tb)tb.innerHTML=divs.length?divs.map(dv=>`<tr><td>${dv.date}</td><td style="font-weight:500">${dv.amount}</td><td><span class="badge bb">${dv.tipo}</span></td><td><span class="badge bg">${dv.yield}</span></td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text2);padding:1rem">Sin datos de dividendos</td></tr>';
+    if(d){
+      setText('f-pe',d.pe); setText('f-pbv',d.pbv); setText('f-roe',d.roe);
+      setText('f-debt',d.debt); setText('f-payout',d.payout); setText('f-ev',d.ev);
+      renderScore(calcScore(d.dy,d.pbv,d.roe,ticker),d.dy,d.pbv,d.roe);
+      const tb=$('t-divbody');
+      if(tb) tb.innerHTML=d.divs.map(dv=>`<tr><td>${dv.date}</td><td style="font-weight:500">${dv.amount}</td><td><span class="badge bb">${dv.tipo}</span></td><td><span class="badge bg">${dv.yield}</span></td></tr>`).join('');
+    }
+
     const hist=data.historicalDataPrice||[];
     if(hist.length){
-      const lbls=hist.map(h=>{const d=new Date(h.date*1000);return curRange==='3y'?d.toLocaleDateString('es-AR',{month:'short',year:'2-digit'}):d.toLocaleDateString('es-AR',{day:'numeric',month:'short'});});
+      const lbls=hist.map(h=>{const dt=new Date(h.date*1000);return dt.toLocaleDateString('es-AR',{day:'numeric',month:'short'});});
       drawPriceChart(lbls,hist.map(h=>h.close?+h.close.toFixed(2):null),isBRL);
     }
+
     setText('data-date','En vivo');
     const badge=document.querySelector('.stale-badge');
-    if(badge){badge.textContent='En vivo';badge.style.background='#EAF3DE';badge.style.color='#3B6D11';}
+    if(badge){badge.textContent='Precio en vivo';badge.style.background='#EAF3DE';badge.style.color='#3B6D11';}
+    const bar=$('update-bar');
+    if(bar) bar.style.display='none';
     return true;
   }catch(e){return false;}
 }
-
 async function loadTicker(ticker){
   curTicker=ticker;
   setHTML('ai-out','');

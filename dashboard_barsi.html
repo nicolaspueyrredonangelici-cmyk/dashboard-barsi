@@ -153,9 +153,9 @@
       <div class="section">
         <div class="stitle">Precio histórico</div>
         <div class="rbtn-row">
-          <div class="rbtn active" data-r="6mo">6M</div>
-          <div class="rbtn" data-r="1y">1A</div>
-          <div class="rbtn" data-r="3y">3A</div>
+          <div class="rbtn active" data-r="6mo">3M</div>
+          <div class="rbtn" data-r="1y">1M</div>
+          <div class="rbtn" data-r="3y">5D</div>
         </div>
         <div class="cw"><canvas id="priceChart"></canvas></div>
       </div>
@@ -410,8 +410,9 @@ function loadStatic(ticker){
 
 async function tryLiveLoad(ticker){
   try{
-    const rm={'6mo':'6mo','1y':'1y','3y':'3y'};
-    const url=`${BRAPI_PROXY}?ticker=${ticker}&range=${rm[curRange]}&interval=1wk`;
+    const rm={'6mo':'3mo','1y':'1mo','3y':'5d'};
+    const interval=curRange==='3y'?'1d':curRange==='1y'?'1d':'1d';
+    const url=`${BRAPI_PROXY}?ticker=${ticker}&range=${rm[curRange]}&interval=${interval}`;
     const json=await Promise.race([fetch(url).then(r=>r.json()),new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))]);
     if(!json.results||!json.results[0])return false;
     const data=json.results[0];

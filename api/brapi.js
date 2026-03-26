@@ -3,15 +3,17 @@ export const config = { runtime: 'edge' };
 export default async function handler(req) {
   const { searchParams } = new URL(req.url);
   const ticker   = searchParams.get('ticker');
-  const range    = searchParams.get('range')    || '6mo';
-  const interval = searchParams.get('interval') || '1wk';
+  const range    = searchParams.get('range')    || '3mo';
+  const interval = searchParams.get('interval') || '1d';
 
   if (!ticker) {
     return new Response(JSON.stringify({ error: 'ticker requerido' }), { status: 400 });
   }
 
   const BTOKEN = 'i4juBiXM1YNfbfnYuk1Sns';
-  const url = `https://brapi.dev/api/quote/${ticker}?token=${BTOKEN}&fundamental=true&dividends=true&range=${range}&interval=${interval}&history=true`;
+
+  // Plan gratuito: solo precio + historial, sin dividendos ni fundamentales
+  const url = `https://brapi.dev/api/quote/${ticker}?token=${BTOKEN}&range=${range}&interval=${interval}&history=true`;
 
   try {
     const r = await fetch(url);
